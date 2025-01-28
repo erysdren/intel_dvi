@@ -1,0 +1,8 @@
+__pycache__/
+untracked/
+examples/
+*.o
+*.exe
+*.AVS
+*.avs
+dviconv
