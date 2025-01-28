@@ -1,4 +1,4 @@
-# Intel DVI Decoder Library
+# Intel DVI Decoder Library & Tools
 
 Intel DVI video format decoder library in C. All information on the format
 has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
