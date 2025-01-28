@@ -1,4 +1,8 @@
-# divconv
+# Intel DVI Decoder Library
+
+Intel DVI video format decoder library in C. All information on the format
+has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
+[Encyclopedia of Graphics File Formats, by James Murray](https://resources.oreilly.com/examples/9781565920583).
 
 ## License
 
