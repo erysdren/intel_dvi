@@ -142,6 +142,8 @@ typedef struct AvLPad {
 	int32_t DCFId;
 } AvLPad;
 
+#define AVL_FRM_VER 3
+
 typedef struct AvLFrm {
 	int32_t FrmNum, RevOffset, ChkSum;
 	int32_t StrmFrmSize[1];
@@ -155,6 +157,8 @@ typedef struct AvLBsh {
 	uint16_t YSize;
 	uint16_t XSize;
 } AvLBsh;
+
+#define AVL_FRMDIR_VER 3
 
 typedef struct AvLFrmDir {
 	uint32_t FrmOffset;
@@ -178,6 +182,12 @@ typedef struct AvLImHdr {
 	uint32_t pad2, pad3;
 } AvLImHdr;
 
+#define AVL_LABEL_VER 3
+
+typedef struct AvLLabel {
+	uint8_t unknown[20];
+} AvLLabel;
+
 static void die(const char *fmt, ...)
 {
 	va_list ap;
@@ -196,6 +206,57 @@ static void read_StdFileHdr(SDL_IOStream *io, StdFileHdr *hdr)
 	SDL_ReadU16LE(io, &hdr->HdrSize);
 	SDL_ReadU16LE(io, &hdr->HdrVersion);
 	SDL_ReadU32LE(io, &hdr->AnnOffset);
+
+	ASSERT(hdr->FileId == VSTD_HDR_ID);
+	ASSERT(hdr->HdrSize == sizeof(StdFileHdr));
+	ASSERT(hdr->HdrVersion == VSTD_HDR_VER);
+}
+
+static void read_AvLFile(SDL_IOStream *io, AvLFile *avl)
+{
+	SDL_ReadU32LE(io, &avl->HdrID);
+	SDL_ReadU16LE(io, &avl->HdrSize);
+	SDL_ReadU16LE(io, &avl->HdrVer);
+	SDL_ReadU16LE(io, &avl->StrmGrpCnt);
+	SDL_ReadU16LE(io, &avl->StrmGrpSize);
+	SDL_ReadU32LE(io, &avl->StrmGrpOffset);
+	SDL_ReadU16LE(io, &avl->StrmGrpVer);
+	SDL_ReadU16LE(io, &avl->StrmSize);
+	SDL_ReadU16LE(io, &avl->StrmVer);
+	SDL_ReadU16LE(io, &avl->StrmCnt);
+	SDL_ReadU32LE(io, &avl->StrmOffset);
+	SDL_ReadU32LE(io, &avl->HdrPoolOffset);
+	SDL_ReadU32LE(io, &avl->LabelCnt);
+	SDL_ReadU32LE(io, &avl->LabelOffset);
+	SDL_ReadU16LE(io, &avl->LabelSize);
+	SDL_ReadU16LE(io, &avl->LabelVer);
+	SDL_ReadU32LE(io, &avl->VshOffset);
+	SDL_ReadU16LE(io, &avl->VshSize);
+	SDL_ReadU16LE(io, &avl->FrmVer);
+	SDL_ReadU32LE(io, &avl->FrmCnt);
+	SDL_ReadU32LE(io, &avl->FrmSize);
+	SDL_ReadU32LE(io, &avl->FirstFrmOffset);
+	SDL_ReadU32LE(io, &avl->EndOfFrmsOffset);
+	SDL_ReadU16LE(io, &avl->FrmHdrSize);
+	SDL_ReadU16LE(io, &avl->FrmDirSize);
+	SDL_ReadU32LE(io, &avl->FrmDirOffset);
+	SDL_ReadU16LE(io, &avl->FrmDirVer);
+	SDL_ReadU16LE(io, &avl->FrmsPerSec);
+	SDL_ReadU32LE(io, &avl->Flag);
+	SDL_ReadU32LE(io, &avl->FreeBlockOffset);
+	SDL_ReadIO(io, avl->Patch, sizeof(avl->Patch));
+
+	ASSERT(avl->HdrID == AVL_FILE_ID);
+	ASSERT(avl->HdrSize == sizeof(AvLFile));
+	ASSERT(avl->HdrVer == AVL_FILE_VER);
+	ASSERT(avl->StrmGrpVer == AVL_STRMGRP_VER);
+	ASSERT(avl->StrmSize == sizeof(AvLStrm));
+	ASSERT(avl->StrmVer == AVL_STRM_VER);
+	ASSERT(avl->LabelSize == sizeof(AvLLabel));
+	ASSERT(avl->LabelVer == AVL_LABEL_VER);
+	ASSERT(avl->FrmVer == AVL_FRM_VER);
+	ASSERT(avl->FrmDirSize == sizeof(AvLFrmDir));
+	ASSERT(avl->FrmDirVer == AVL_FRMDIR_VER);
 }
 
 static  bool string_endswith(const char *s, const char *e)
@@ -244,7 +305,9 @@ int main(int argc, char **argv)
 		}
 
 		StdFileHdr hdr;
+		AvLFile avl;
 		read_StdFileHdr(inputIo, &hdr);
+		read_AvLFile(inputIo, &avl);
 
 		/* get output filename */
 		char outputFilename[1024];
