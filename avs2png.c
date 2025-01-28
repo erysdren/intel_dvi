@@ -1,6 +1,8 @@
 
 #include <SDL3/SDL.h>
 
+#include <stdlib.h>
+
 #define log_warning(...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define log_info(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 
@@ -175,6 +177,18 @@ typedef struct AvLImHdr {
 	uint16_t ImColor, ImPlane;
 	uint32_t pad2, pad3;
 } AvLImHdr;
+
+static void die(const char *fmt, ...)
+{
+	va_list ap;
+	va_start(ap, fmt);
+	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, fmt, ap);
+	va_end(ap);
+	SDL_Quit();
+	exit(0);
+}
+
+#define ASSERT(equ) do { if (!(equ)) die("Assertion failed: \"" #equ "\""); } while (0)
 
 static void read_StdFileHdr(SDL_IOStream *io, StdFileHdr *hdr)
 {
