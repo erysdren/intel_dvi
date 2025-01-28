@@ -9,8 +9,8 @@ override LDFLAGS+=$(shell $(PKGCONFIG) --libs $(PKGS))
 BINEXT?=
 OBJEXT?=.o
 
-EXEC?=dvi2avi$(BINEXT)
-OBJS=dvi2avi$(OBJEXT)
+EXEC?=avs2png$(BINEXT)
+OBJS=avs2png$(OBJEXT)
 
 all: $(EXEC)
 
