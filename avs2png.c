@@ -176,6 +176,14 @@ typedef struct AvLImHdr {
 	uint32_t pad2, pad3;
 } AvLImHdr;
 
+static void read_StdFileHdr(SDL_IOStream *io, StdFileHdr *hdr)
+{
+	SDL_ReadU32LE(io, &hdr->FileId);
+	SDL_ReadU16LE(io, &hdr->HdrSize);
+	SDL_ReadU16LE(io, &hdr->HdrVersion);
+	SDL_ReadU32LE(io, &hdr->AnnOffset);
+}
+
 static  bool string_endswith(const char *s, const char *e)
 {
 	size_t elen = SDL_strlen(e);
@@ -220,6 +228,9 @@ int main(int argc, char **argv)
 			log_warning("Failed to create output buffer");
 			goto cleanup;
 		}
+
+		StdFileHdr hdr;
+		read_StdFileHdr(inputIo, &hdr);
 
 		/* get output filename */
 		char outputFilename[1024];
