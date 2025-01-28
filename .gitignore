@@ -5,4 +5,4 @@ examples/
 *.exe
 *.AVS
 *.avs
-dviconv
+avs2png
