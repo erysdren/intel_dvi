@@ -45,12 +45,12 @@ int main(int argc, char **argv)
 
 		/* allocate input planes */
 		size_t inputPlaneYLen = UVI_WIDTH * UVI_HEIGHT;
-		size_t inputPlaneULen = (UVI_WIDTH / 4) * (UVI_HEIGHT / 4);
-		size_t inputPlaneVLen = (UVI_WIDTH / 4) * (UVI_HEIGHT / 4);
+		size_t inputPlaneULen = (UVI_WIDTH >> 2) * (UVI_HEIGHT >> 2);
+		size_t inputPlaneVLen = (UVI_WIDTH >> 2) * (UVI_HEIGHT >> 2);
 
 		Uint8 *inputPlaneY = SDL_malloc(inputPlaneYLen);
-		Sint8 *inputPlaneV = SDL_malloc(inputPlaneVLen);
-		Sint8 *inputPlaneU = SDL_malloc(inputPlaneULen);
+		Uint8 *inputPlaneV = SDL_malloc(inputPlaneVLen);
+		Uint8 *inputPlaneU = SDL_malloc(inputPlaneULen);
 
 		/* read planes */
 		if (SDL_ReadIO(inputIo, inputPlaneY, inputPlaneYLen) != inputPlaneYLen)
@@ -58,14 +58,14 @@ int main(int argc, char **argv)
 			log_warning("Failed to read Y plane");
 			goto cleanup;
 		}
-		if (SDL_ReadIO(inputIo, inputPlaneV, inputPlaneVLen) != inputPlaneVLen)
-		{
-			log_warning("Failed to read V plane");
-			goto cleanup;
-		}
 		if (SDL_ReadIO(inputIo, inputPlaneU, inputPlaneULen) != inputPlaneULen)
 		{
 			log_warning("Failed to read U plane");
+			goto cleanup;
+		}
+		if (SDL_ReadIO(inputIo, inputPlaneV, inputPlaneVLen) != inputPlaneVLen)
+		{
+			log_warning("Failed to read V plane");
 			goto cleanup;
 		}
 
@@ -75,26 +75,24 @@ int main(int argc, char **argv)
 			for (int x = 0; x < UVI_WIDTH; x++)
 			{
 				/* get float yuv */
-				float fy = ((float)inputPlaneY[y * UVI_WIDTH + x]) / 255.0f;
-				float fv = ((float)inputPlaneV[(y / 4) * (UVI_WIDTH / 4) + (x / 4)]) / 255.0f;
-				float fu = ((float)inputPlaneU[(y / 4) * (UVI_WIDTH / 4) + (x / 4)]) / 255.0f;
-
-				fy -= 16;
-				fv -= 128;
-				fu -= 128;
+				float fy = inputPlaneY[y * UVI_WIDTH + x];
+				float fu = inputPlaneU[(y >> 2) * (UVI_WIDTH >> 2) + (x >> 2)];
+				float fv = inputPlaneV[(y >> 2) * (UVI_WIDTH >> 2) + (x >> 2)];
 
 				/* get float rgb */
-				float fr = 1.164 * fy + 1.596 * fv;
-				float fg = 1.164 * fy - 0.392 * fu - 0.813 * fv;
-				float fb = 1.164 * fy + 2.017 * fu;
+				float fr = ((298.082 * fy) / 256.0f) + ((408.583 * fu) / 256.0f) - 222.921;
+				float fg = ((298.082 * fy) / 256.0f) - ((100.291 * fv) / 256.0f) - ((208.120 * fu) / 256.0f) + 135.576;
+				float fb = ((298.082 * fy) / 256.0f) + ((516.412 * fv) / 256.0f) - 276.836;
 
-				log_info("%dx%d YVU: %0.4f %0.4f %0.4f", x, y, fy, fv, fu);
+#ifdef DEBUG
+				log_info("%dx%d YUV: %0.4f %0.4f %0.4f", x, y, fy, fu, fv);
 				log_info("%dx%d RGB: %0.4f %0.4f %0.4f", x, y, fr, fg, fb);
+#endif
 
 				/* write rgb24 */
-				SDL_WriteU8(outputIo, (Uint8)(fr * 255.0f));
-				SDL_WriteU8(outputIo, (Uint8)(fg * 255.0f));
-				SDL_WriteU8(outputIo, (Uint8)(fb * 255.0f));
+				SDL_WriteU8(outputIo, (Uint8)SDL_clamp(fr, 0, 255));
+				SDL_WriteU8(outputIo, (Uint8)SDL_clamp(fg, 0, 255));
+				SDL_WriteU8(outputIo, (Uint8)SDL_clamp(fb, 0, 255));
 			}
 		}
 
