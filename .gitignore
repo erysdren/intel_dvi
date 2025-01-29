@@ -5,6 +5,8 @@ examples/
 *.exe
 *.AVS
 *.avs
+*.uvi
+*.UVI
 *.avi
 *.png
 avs2png
