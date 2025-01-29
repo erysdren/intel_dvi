@@ -1,10 +1,6 @@
 
 #include <SDL3/SDL.h>
-
-#include <stdlib.h>
-
-#define log_warning(...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
-#define log_info(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
+#include "utils.h"
 
 #define AVL_LAST_HDR 0x7fffffff
 
@@ -204,18 +200,6 @@ typedef struct AvLLabel {
 	uint8_t unknown[20];
 } AvLLabel;
 
-static void die(const char *fmt, ...)
-{
-	va_list ap;
-	va_start(ap, fmt);
-	SDL_LogMessageV(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_ERROR, fmt, ap);
-	va_end(ap);
-	SDL_Quit();
-	exit(0);
-}
-
-#define ASSERT(equ) do { if (!(equ)) die("Assertion failed: \"" #equ "\""); } while (0)
-
 static void read_StdFileHdr(SDL_IOStream *io, StdFileHdr *hdr)
 {
 	SDL_ReadU32LE(io, &hdr->FileId);
@@ -223,9 +207,9 @@ static void read_StdFileHdr(SDL_IOStream *io, StdFileHdr *hdr)
 	SDL_ReadU16LE(io, &hdr->HdrVersion);
 	SDL_ReadU32LE(io, &hdr->AnnOffset);
 
-	ASSERT(hdr->FileId == VSTD_HDR_ID);
-	ASSERT(hdr->HdrSize == sizeof(StdFileHdr));
-	ASSERT(hdr->HdrVersion == VSTD_HDR_VER);
+	soft_assert(hdr->FileId == VSTD_HDR_ID);
+	soft_assert(hdr->HdrSize == sizeof(StdFileHdr));
+	soft_assert(hdr->HdrVersion == VSTD_HDR_VER);
 }
 
 static void read_AvLFile(SDL_IOStream *io, AvLFile *avl)
@@ -262,25 +246,17 @@ static void read_AvLFile(SDL_IOStream *io, AvLFile *avl)
 	SDL_ReadU32LE(io, &avl->FreeBlockOffset);
 	SDL_ReadIO(io, avl->Patch, sizeof(avl->Patch));
 
-	ASSERT(avl->HdrID == AVL_FILE_ID);
-	ASSERT(avl->HdrSize == sizeof(AvLFile));
-	ASSERT(avl->HdrVer == AVL_FILE_VER);
-	ASSERT(avl->StrmGrpVer == AVL_STRMGRP_VER);
-	ASSERT(avl->StrmSize == sizeof(AvLStrm));
-	ASSERT(avl->StrmVer == AVL_STRM_VER);
-	ASSERT(avl->LabelSize == sizeof(AvLLabel));
-	ASSERT(avl->LabelVer == AVL_LABEL_VER);
-	ASSERT(avl->FrmVer == AVL_FRM_VER);
-	ASSERT(avl->FrmDirSize == sizeof(AvLFrmDir));
-	ASSERT(avl->FrmDirVer == AVL_FRMDIR_VER);
-}
-
-static bool string_endswith(const char *s, const char *e)
-{
-	size_t elen = SDL_strlen(e);
-	size_t slen = SDL_strlen(s);
-	if (elen > slen) return false;
-	return SDL_strcmp(s + slen - elen, e) == 0 ? true : false;
+	soft_assert(avl->HdrID == AVL_FILE_ID);
+	soft_assert(avl->HdrSize == sizeof(AvLFile));
+	soft_assert(avl->HdrVer == AVL_FILE_VER);
+	soft_assert(avl->StrmGrpVer == AVL_STRMGRP_VER);
+	soft_assert(avl->StrmSize == sizeof(AvLStrm));
+	soft_assert(avl->StrmVer == AVL_STRM_VER);
+	soft_assert(avl->LabelSize == sizeof(AvLLabel));
+	soft_assert(avl->LabelVer == AVL_LABEL_VER);
+	soft_assert(avl->FrmVer == AVL_FRM_VER);
+	soft_assert(avl->FrmDirSize == sizeof(AvLFrmDir));
+	soft_assert(avl->FrmDirVer == AVL_FRMDIR_VER);
 }
 
 static void make_output_filename(const char *input, char *output, size_t output_size)
