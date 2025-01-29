@@ -60,6 +60,22 @@ enum {
 	AVL_ST_YUV_S = 14 /* YUV image data (Industry Standard Order) */
 };
 
+static const char *avl_type_names[] = {
+	[AVL_T_AUD] = "AVL_T_AUD",
+	[AVL_T_CIM] = "AVL_T_CIM",
+	[AVL_T_ULAY] = "AVL_T_ULAY",
+	[AVL_T_UIM] = "AVL_T_UIM",
+	[AVL_T_PAD] = "AVL_T_PAD"
+};
+
+static const char *avl_subtype_names[] = {
+	[AVL_ST_Y] = "AVL_ST_Y",
+	[AVL_ST_U] = "AVL_ST_U",
+	[AVL_ST_V] = "AVL_ST_V",
+	[AVL_ST_YVU] = "AVL_ST_YVU",
+	[AVL_ST_YUV_S] = "AVL_ST_YUV_S"
+};
+
 typedef struct AvLStrm {
 	uint32_t HdrID;
 	uint16_t Type, SubType;
@@ -259,6 +275,54 @@ static void read_AvLFile(SDL_IOStream *io, AvLFile *avl)
 	soft_assert(avl->FrmDirVer == AVL_FRMDIR_VER);
 }
 
+static void read_AvLStrm(SDL_IOStream *io, AvLStrm *stream)
+{
+	SDL_ReadU32LE(io, &stream->HdrID);
+	SDL_ReadU16LE(io, &stream->Type);
+	SDL_ReadU16LE(io, &stream->SubType);
+	SDL_ReadU16LE(io, &stream->HdrCnt);
+	SDL_ReadU16LE(io, &stream->NextStrmNum);
+	SDL_ReadU16LE(io, &stream->StrmGrpNum);
+	SDL_ReadU16LE(io, &stream->Pad);
+	SDL_ReadU32LE(io, &stream->Flag);
+	SDL_ReadU32LE(io, &stream->FrmSize);
+	SDL_ReadU32LE(io, &stream->FirstHdrOffset);
+	SDL_ReadIO(io, stream->StrmName, sizeof(stream->StrmName));
+
+	soft_assert(stream->HdrID == AVL_STRM_ID);
+}
+
+static void read_AvLCim(SDL_IOStream *io, AvLCim *cim)
+{
+	SDL_ReadU32LE(io, &cim->HdrID);
+	SDL_ReadU16LE(io, &cim->HdrSize);
+	SDL_ReadU16LE(io, &cim->HdrVer);
+	SDL_ReadIO(io, cim->OrigFile, sizeof(cim->OrigFile));
+	SDL_ReadU32LE(io, &cim->OrigFrm);
+	SDL_ReadU16LE(io, &cim->OrigStrm);
+	SDL_ReadU16LE(io, &cim->Pad);
+	SDL_ReadU32LE(io, &cim->FrmCnt);
+	SDL_ReadU32LE(io, &cim->NextHdrOffset);
+	SDL_ReadU16LE(io, &cim->XPos);
+	SDL_ReadU16LE(io, &cim->YPos);
+	SDL_ReadU16LE(io, &cim->XLen);
+	SDL_ReadU16LE(io, &cim->YLen);
+	SDL_ReadU16LE(io, &cim->XCrop);
+	SDL_ReadU16LE(io, &cim->YCrop);
+	SDL_ReadU16LE(io, &cim->DropFrm);
+	SDL_ReadU16LE(io, &cim->DropPhase);
+	SDL_ReadU32LE(io, &cim->StillPeriod);
+	SDL_ReadU16LE(io, &cim->BufsMin);
+	SDL_ReadU16LE(io, &cim->BufsMax);
+	SDL_ReadU16LE(io, &cim->DeCodeAlg);
+	SDL_ReadU16LE(io, &cim->Pad2);
+	SDL_ReadU32LE(io, &cim->DCFId);
+
+	soft_assert(cim->HdrID == AVL_CIM_ID);
+	soft_assert(cim->HdrSize == sizeof(AvLCim));
+	soft_assert(cim->HdrVer == AVL_CIM_VER);
+}
+
 static void make_output_filename(const char *input, char *output, size_t output_size)
 {
 	size_t inputLen = SDL_strlen(input);
@@ -296,10 +360,46 @@ int main(int argc, char **argv)
 			goto cleanup;
 		}
 
+		/* read file header */
 		StdFileHdr hdr;
 		AvLFile avl;
 		read_StdFileHdr(inputIo, &hdr);
 		read_AvLFile(inputIo, &avl);
+
+		/* read streams */
+		SDL_SeekIO(inputIo, avl.StrmOffset, SDL_IO_SEEK_SET);
+		for (int i = 0; i < avl.StrmCnt; i++)
+		{
+			AvLStrm stream;
+			read_AvLStrm(inputIo, &stream);
+			log_info("Stream %d:", i);
+			log_info("\tName: %.*s", sizeof(stream.StrmName), stream.StrmName);
+			log_info("\tType: %s", avl_type_names[stream.Type]);
+
+			/* save position of next stream header */
+			Sint64 nextStrmOffset = SDL_TellIO(inputIo);
+
+			/* read substreams */
+			SDL_SeekIO(inputIo, stream.FirstHdrOffset, SDL_IO_SEEK_SET);
+			for (int j = 0; j < stream.HdrCnt; j++)
+			{
+				if (stream.Type == AVL_T_CIM)
+				{
+					AvLCim cim;
+					read_AvLCim(inputIo, &cim);
+					log_info("\tSubStream %d:", j);
+					log_info("\t\tSubType: %s", avl_subtype_names[stream.SubType]);
+					log_info("\t\tDeCodeAlg: %d", cim.DeCodeAlg);
+					log_info("\t\tXPos: %d", cim.XPos);
+					log_info("\t\tYPos: %d", cim.YPos);
+					log_info("\t\tXLen: %d", cim.XLen);
+					log_info("\t\tYLen: %d", cim.YLen);
+				}
+			}
+
+			/* seek to next stream header */
+			SDL_SeekIO(inputIo, nextStrmOffset, SDL_IO_SEEK_SET);
+		}
 
 		/* get output filename */
 		char outputFilename[1024];
