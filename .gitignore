@@ -10,5 +10,6 @@ examples/
 *.avi
 *.png
 *.bmp
+*.xcf
 avs2png
 uvi2png
