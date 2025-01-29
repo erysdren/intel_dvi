@@ -11,6 +11,10 @@ has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 - [YVU9 Pixel Format](https://fourcc.org/pixel-format/yuv-yvu9/)
 - [YUV9 Pixel Format](https://fourcc.org/pixel-format/yuv-yuv9/)
 
+## Thirdparty Code
+
+- [stb_image_write](https://github.com/nothings/stb/)
+
 ## License
 
 MIT License
