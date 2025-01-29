@@ -9,5 +9,6 @@ examples/
 *.UVI
 *.avi
 *.png
+*.bmp
 avs2png
 uvi2png
