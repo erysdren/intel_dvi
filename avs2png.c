@@ -48,6 +48,22 @@ typedef struct AvLFile {
 #define AVL_STRMGRP_VER 3
 #define AVL_STRMGRP_END -1
 
+enum {
+	AVL_T_AUD = 2, /* Compressed audio stream */
+	AVL_T_CIM = 3, /* Compressed image stream */
+	AVL_T_ULAY = 5, /* Associated per-frame data */
+	AVL_T_UIM = 6, /* Uncompressed Image Stream */
+	AVL_T_PAD = 7 /* Pad Stream */
+};
+
+enum {
+	AVL_ST_Y = 1, /* Y-channel image data */
+	AVL_ST_U = 11, /* U-channel image data */
+	AVL_ST_V = 12, /* V-channel image data */
+	AVL_ST_YVU = 13, /* YVU image data */
+	AVL_ST_YUV_S = 14 /* YUV image data (Industry Standard Order) */
+};
+
 typedef struct AvLStrm {
 	uint32_t HdrID;
 	uint16_t Type, SubType;
