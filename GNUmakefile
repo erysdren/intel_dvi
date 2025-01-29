@@ -22,11 +22,11 @@ all: $(AVS2PNG_EXEC) $(UVI2PNG_EXEC)
 clean:
 	$(RM) $(AVS2PNG_EXEC) $(UVI2PNG_EXEC) $(AVS2PNG_OBJS) $(UVI2PNG_OBJS) $(SHARED_OBJS)
 
-debug: CFLAGS+=-g -O0
+debug: CFLAGS+=-g -O0 -DDEBUG
 debug: $(AVS2PNG_EXEC)
 debug: $(UVI2PNG_EXEC)
 
-release: CFLAGS+=-O3
+release: CFLAGS+=-O3 -DNDEBUG
 release: $(AVS2PNG_EXEC)
 release: $(UVI2PNG_EXEC)
 
