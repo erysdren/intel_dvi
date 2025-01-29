@@ -15,7 +15,7 @@ AVS2PNG_OBJS=avs2png$(OBJEXT)
 UVI2PNG_EXEC=uvi2png$(BINEXT)
 UVI2PNG_OBJS=uvi2png$(OBJEXT)
 
-SHARED_OBJS=utils$(OBJEXT) stb_image_write$(OBJEXT)
+SHARED_OBJS=utils$(OBJEXT) stb_image_write$(OBJEXT) yuv$(OBJEXT)
 
 all: $(AVS2PNG_EXEC) $(UVI2PNG_EXEC)
 
