@@ -275,7 +275,7 @@ static void read_AvLFile(SDL_IOStream *io, AvLFile *avl)
 	ASSERT(avl->FrmDirVer == AVL_FRMDIR_VER);
 }
 
-static  bool string_endswith(const char *s, const char *e)
+static bool string_endswith(const char *s, const char *e)
 {
 	size_t elen = SDL_strlen(e);
 	size_t slen = SDL_strlen(s);
