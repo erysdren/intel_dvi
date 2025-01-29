@@ -4,6 +4,13 @@ Intel DVI video format decoder library in C. All information on the format
 has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 [Encyclopedia of Graphics File Formats, by James Murray](https://resources.oreilly.com/examples/9781565920583).
 
+## Format Documentation
+
+- [Appendix F: DVI Multimedia File Format](./docs/APPENDF.TXT)
+- [US Patent 5,666,137 for YUV9 Pixel Data](./docs/US5666137.pdf)
+- [YVU9 Pixel Format](https://fourcc.org/pixel-format/yuv-yvu9/)
+- [YUV9 Pixel Format](https://fourcc.org/pixel-format/yuv-yuv9/)
+
 ## License
 
 MIT License
