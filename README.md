@@ -11,6 +11,8 @@ has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 - [YVU9 Pixel Format](https://fourcc.org/pixel-format/yuv-yvu9/)
 - [YUV9 Pixel Format](https://fourcc.org/pixel-format/yuv-yuv9/)
 - [ITU-R BT.601 conversion](https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion)
+- [ActionMedia II Links](https://ardent-tool.com/video/ActionMedia.html)
+- [Intel DVI File Format Summary](https://www.fileformat.info/format/dvi/egff.htm)
 
 ## Thirdparty Code
 
