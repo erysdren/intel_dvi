@@ -11,5 +11,6 @@ examples/
 *.png
 *.bmp
 *.xcf
+*.bin
 avs2png
 uvi2png
