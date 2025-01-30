@@ -1,6 +1,8 @@
 
 #include <SDL3/SDL.h>
 #include "utils.h"
+#include "stb_image_write.h"
+#include "yuv.h"
 
 #define AVL_LAST_HDR 0x7fffffff
 
@@ -170,11 +172,12 @@ typedef struct AvLPad {
 	int32_t DCFId;
 } AvLPad;
 
+#define AVL_FRM_ID 0x46524d48
 #define AVL_FRM_VER 3
 
 typedef struct AvLFrm {
 	int32_t FrmNum, RevOffset, ChkSum;
-	int32_t StrmFrmSize[1];
+	int32_t *StrmFrmSize;
 } AvLFrm;
 
 typedef struct AvLBsh {
@@ -323,6 +326,32 @@ static void read_AvLCim(SDL_IOStream *io, AvLCim *cim)
 	soft_assert(cim->HdrVer == AVL_CIM_VER);
 }
 
+static void read_AvLFrmDir(SDL_IOStream *io, AvLFrmDir *dir)
+{
+	SDL_ReadU32LE(io, &dir->FrmOffset);
+	dir->FrmOffset &= 0x7fffffff;
+}
+
+static void read_AvLFrm(SDL_IOStream *io, AvLFrm *frm, int StrmCnt)
+{
+	SDL_ReadU32LE(io, &frm->FrmNum);
+	SDL_ReadU32LE(io, &frm->RevOffset);
+	SDL_ReadU32LE(io, &frm->ChkSum);
+	frm->StrmFrmSize = SDL_calloc(StrmCnt, sizeof(int32_t));
+	for (int i = 0; i < StrmCnt; i++)
+		SDL_ReadU32LE(io, &frm->StrmFrmSize[i]);
+}
+
+static void read_AvLBsh(SDL_IOStream *io, AvLBsh *bsh)
+{
+	SDL_ReadU16LE(io, &bsh->AlgNum);
+	SDL_ReadU16LE(io, &bsh->Flags);
+	SDL_ReadU32LE(io, &bsh->NumBits);
+	SDL_ReadU32LE(io, &bsh->AlgSpec);
+	SDL_ReadU16LE(io, &bsh->YSize);
+	SDL_ReadU16LE(io, &bsh->XSize);
+}
+
 static void make_output_filename(const char *input, char *output, size_t output_size)
 {
 	size_t inputLen = SDL_strlen(input);
@@ -342,10 +371,16 @@ int main(int argc, char **argv)
 {
 	for (int arg = 1; arg < argc; arg++)
 	{
+		AvLFrmDir *frameDirectory = NULL;
+		AvLFrm *frames = NULL;
+		AvLBsh *frameBitStreams = NULL;
+		SDL_IOStream *inputIo = NULL;
+		SDL_IOStream *outputIo = NULL;
+
 		log_info("Processing \"%s\"", argv[arg]);
 
 		/* open input file */
-		SDL_IOStream *inputIo = SDL_IOFromFile(argv[arg], "rb");
+		inputIo = SDL_IOFromFile(argv[arg], "rb");
 		if (!inputIo)
 		{
 			log_warning("Failed to open \"%s\" for reading", argv[arg]);
@@ -353,7 +388,7 @@ int main(int argc, char **argv)
 		}
 
 		/* open temporary buffer for writing */
-		SDL_IOStream *outputIo = SDL_IOFromDynamicMem();
+		outputIo = SDL_IOFromDynamicMem();
 		if (!outputIo)
 		{
 			log_warning("Failed to create output buffer");
@@ -367,6 +402,37 @@ int main(int argc, char **argv)
 		read_AvLFile(inputIo, &avl);
 
 		log_info("FrmsPerSec: %d", avl.FrmsPerSec);
+		log_info("FrmCnt: %d", avl.FrmCnt);
+		log_info("FirstFrmOffset: %d", avl.FirstFrmOffset);
+		log_info("EndOfFrmsOffset: %d", avl.EndOfFrmsOffset);
+
+		/* read frame directory */
+		SDL_SeekIO(inputIo, avl.FrmDirOffset, SDL_IO_SEEK_SET);
+		frameDirectory = SDL_calloc(avl.FrmCnt, sizeof(AvLFrmDir));
+		for (int i = 0; i < avl.FrmCnt; i++)
+		{
+			read_AvLFrmDir(inputIo, &frameDirectory[i]);
+		}
+
+		/* read frames */
+		frames = SDL_calloc(avl.FrmCnt, sizeof(AvLFrm));
+		frameBitStreams = SDL_calloc(avl.FrmCnt, sizeof(AvLBsh));
+		for (int i = 0; i < avl.FrmCnt; i++)
+		{
+			SDL_SeekIO(inputIo, frameDirectory[i].FrmOffset, SDL_IO_SEEK_SET);
+			read_AvLFrm(inputIo, &frames[i], avl.StrmCnt);
+			read_AvLBsh(inputIo, &frameBitStreams[i]);
+
+			log_info("Frame %d: AlgNum: %d", i, frameBitStreams[i].AlgNum);
+
+#if 0
+			char frameFilename[1024];
+			SDL_snprintf(frameFilename, sizeof(frameFilename), "%s_%d.png", argv[arg], i);
+			void *framePixels = yuv9_to_rgb24(frameBitStreams[i].XSize, frameBitStreams[i].YSize, inputIo, true);
+			stbi_write_png(frameFilename, frameBitStreams[i].XSize, frameBitStreams[i].YSize, 3, framePixels, frameBitStreams[i].XSize * 3);
+			SDL_free(framePixels);
+#endif
+		}
 
 		/* read streams */
 		SDL_SeekIO(inputIo, avl.StrmOffset, SDL_IO_SEEK_SET);
@@ -406,6 +472,7 @@ int main(int argc, char **argv)
 			SDL_SeekIO(inputIo, nextStrmOffset, SDL_IO_SEEK_SET);
 		}
 
+#if 0
 		/* get output filename */
 		char outputFilename[1024];
 		make_output_filename(argv[arg], outputFilename, sizeof(outputFilename));
@@ -420,9 +487,17 @@ int main(int argc, char **argv)
 			log_warning("Failed to save \"%s\"", outputFilename);
 		else
 			log_info("Successfully Saved \"%s\"", outputFilename);
+#endif
 
 		/* clean up */
 cleanup:
+		if (frames)
+		{
+			for (int i = 0; i < avl.FrmCnt; i++)
+				SDL_free(frames[i].StrmFrmSize);
+			SDL_free(frames);
+		}
+		if (frameDirectory) SDL_free(frameDirectory);
 		if (inputIo) SDL_CloseIO(inputIo);
 		if (outputIo) SDL_CloseIO(outputIo);
 	}
