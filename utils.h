@@ -9,6 +9,7 @@ extern "C" {
 
 #define log_warning(...) SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 #define log_info(...) SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
+#define log_debug(...) SDL_LogDebug(SDL_LOG_CATEGORY_APPLICATION, __VA_ARGS__)
 
 #define soft_assert(equ) do { if (!(equ)) die("Assertion failed: \"" #equ "\""); } while (0)
 
