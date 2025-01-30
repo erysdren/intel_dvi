@@ -15,6 +15,7 @@ has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 - [Intel DVI File Format Summary](https://www.fileformat.info/format/dvi/egff.htm)
 - [DVI Technology Publications](https://manifest-tech.com/dvi/dvi_pubs.htm)
 - [Digital Video Interactive](https://en.wikipedia.org/wiki/Digital_Video_Interactive)
+- [DVI Technology Chronology](https://www.manifest-tech.com/dvi/dvi_chron.htm)
 
 ## Thirdparty Code
 
