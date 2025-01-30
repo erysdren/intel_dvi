@@ -415,10 +415,10 @@ int main(int argc, char **argv)
 		read_StdFileHdr(inputIo, &hdr);
 		read_AvLFile(inputIo, &avl);
 
-		log_info("FrmsPerSec: %d", avl.FrmsPerSec);
-		log_info("FrmCnt: %d", avl.FrmCnt);
-		log_info("FirstFrmOffset: %d", avl.FirstFrmOffset);
-		log_info("EndOfFrmsOffset: %d", avl.EndOfFrmsOffset);
+		log_debug("FrmsPerSec: %d", avl.FrmsPerSec);
+		log_debug("FrmCnt: %d", avl.FrmCnt);
+		log_debug("FirstFrmOffset: %d", avl.FirstFrmOffset);
+		log_debug("EndOfFrmsOffset: %d", avl.EndOfFrmsOffset);
 
 		/* read frame directory */
 		SDL_SeekIO(inputIo, avl.FrmDirOffset, SDL_IO_SEEK_SET);
@@ -437,7 +437,20 @@ int main(int argc, char **argv)
 			read_AvLFrm(inputIo, &frames[i], avl.StrmCnt);
 			read_AvLBsh(inputIo, &frameBitStreams[i]);
 
-			log_info("Frame %d: AlgNum: %d", i, frameBitStreams[i].AlgNum);
+			log_debug("AvLFrm %d:", i);
+			log_debug("\tFrmNum: %d", frames[i].FrmNum);
+			log_debug("\tRevOffset: %d", frames[i].RevOffset);
+			log_debug("\tChkSum: 0x%08x", frames[i].ChkSum);
+			for (int j = 0; j < avl.StrmCnt; j++)
+				log_debug("\tStrmFrmSize[%d]: %d", j, frames[i].StrmFrmSize[j]);
+			log_debug("AvLBsh %d:", i);
+			log_debug("\tAlgNum: %d", frameBitStreams[i].AlgNum);
+			log_debug("\tFlags: 0x%04x", frameBitStreams[i].Flags);
+			log_debug("\tNumBits: %d", frameBitStreams[i].NumBits);
+			log_debug("\tAlgSpec: %d", frameBitStreams[i].AlgSpec);
+			log_debug("\tYSize: %d", frameBitStreams[i].YSize);
+			log_debug("\tXSize: %d", frameBitStreams[i].XSize);
+			log_debug("\n");
 
 #if 0
 			char frameFilename[1024];
@@ -454,9 +467,9 @@ int main(int argc, char **argv)
 		{
 			AvLStrm stream;
 			read_AvLStrm(inputIo, &stream);
-			log_info("Stream %d:", i);
-			log_info("\tName: %.*s", sizeof(stream.StrmName), stream.StrmName);
-			log_info("\tType: %s", avl_type_names[stream.Type]);
+			log_debug("Stream %d:", i);
+			log_debug("\tName: %.*s", sizeof(stream.StrmName), stream.StrmName);
+			log_debug("\tType: %s", avl_type_names[stream.Type]);
 
 			/* save position of next stream header */
 			Sint64 nextStrmOffset = SDL_TellIO(inputIo);
@@ -465,20 +478,20 @@ int main(int argc, char **argv)
 			SDL_SeekIO(inputIo, stream.FirstHdrOffset, SDL_IO_SEEK_SET);
 			for (int j = 0; j < stream.HdrCnt; j++)
 			{
-				log_info("\tSubStream %d:", j);
-				log_info("\t\tSubType: %s", avl_subtype_names[stream.SubType]);
+				log_debug("\tSubStream %d:", j);
+				log_debug("\t\tSubType: %s", avl_subtype_names[stream.SubType]);
 
 				if (stream.Type == AVL_T_CIM)
 				{
 					AvLCim cim;
 					read_AvLCim(inputIo, &cim);
-					log_info("\t\tDeCodeAlg: %d", cim.DeCodeAlg);
-					log_info("\t\tXPos: %d", cim.XPos);
-					log_info("\t\tYPos: %d", cim.YPos);
-					log_info("\t\tXLen: %d", cim.XLen);
-					log_info("\t\tYLen: %d", cim.YLen);
-					log_info("\t\tXCrop: %d", cim.XCrop);
-					log_info("\t\tYCrop: %d", cim.YCrop);
+					log_debug("\t\tDeCodeAlg: %d", cim.DeCodeAlg);
+					log_debug("\t\tXPos: %d", cim.XPos);
+					log_debug("\t\tYPos: %d", cim.YPos);
+					log_debug("\t\tXLen: %d", cim.XLen);
+					log_debug("\t\tYLen: %d", cim.YLen);
+					log_debug("\t\tXCrop: %d", cim.XCrop);
+					log_debug("\t\tYCrop: %d", cim.YCrop);
 				}
 			}
 
