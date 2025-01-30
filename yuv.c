@@ -3,7 +3,7 @@
 #include "yuv.h"
 #include "utils.h"
 
-void *yuv9_to_rgb24(int inputWidth, int inputHeight, SDL_IOStream *inputIo)
+void *yuv9_to_rgb24(int inputWidth, int inputHeight, SDL_IOStream *inputIo, bool is_yvu)
 {
 	Uint8 *outputPixels = NULL;
 	Uint8 *inputPlaneY = NULL;
@@ -19,27 +19,26 @@ void *yuv9_to_rgb24(int inputWidth, int inputHeight, SDL_IOStream *inputIo)
 
 	/* allocate input planes */
 	size_t inputPlaneYLen = inputWidth * inputHeight;
-	size_t inputPlaneULen = (inputWidth >> 2) * (inputHeight >> 2);
-	size_t inputPlaneVLen = (inputWidth >> 2) * (inputHeight >> 2);
+	size_t inputPlaneUVLen = (inputWidth >> 2) * (inputHeight >> 2);
 
 	inputPlaneY = SDL_malloc(inputPlaneYLen);
-	inputPlaneU = SDL_malloc(inputPlaneULen);
-	inputPlaneV = SDL_malloc(inputPlaneVLen);
+	inputPlaneU = SDL_malloc(inputPlaneUVLen);
+	inputPlaneV = SDL_malloc(inputPlaneUVLen);
 
 	/* read input planes */
 	if (SDL_ReadIO(inputIo, inputPlaneY, inputPlaneYLen) != inputPlaneYLen)
 	{
-		log_warning("yuv9_to_rgb24(): Failed to read Y plane");
+		log_warning("yuv9_to_rgb24(): Failed to read first plane");
 		goto failed;
 	}
-	if (SDL_ReadIO(inputIo, inputPlaneU, inputPlaneULen) != inputPlaneULen)
+	if (SDL_ReadIO(inputIo, is_yvu ? inputPlaneV : inputPlaneU, inputPlaneUVLen) != inputPlaneUVLen)
 	{
-		log_warning("yuv9_to_rgb24(): Failed to read U plane");
+		log_warning("yuv9_to_rgb24(): Failed to read second plane");
 		goto failed;
 	}
-	if (SDL_ReadIO(inputIo, inputPlaneV, inputPlaneVLen) != inputPlaneVLen)
+	if (SDL_ReadIO(inputIo, is_yvu ? inputPlaneU : inputPlaneV, inputPlaneUVLen) != inputPlaneUVLen)
 	{
-		log_warning("yuv9_to_rgb24(): Failed to read V plane");
+		log_warning("yuv9_to_rgb24(): Failed to read third plane");
 		goto failed;
 	}
 

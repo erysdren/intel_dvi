@@ -37,7 +37,7 @@ int main(int argc, char **argv)
 		}
 
 		/* do conversion */
-		void *outputPixels = yuv9_to_rgb24(UVI_WIDTH, UVI_HEIGHT, inputIo);
+		void *outputPixels = yuv9_to_rgb24(UVI_WIDTH, UVI_HEIGHT, inputIo, false);
 		if (!outputPixels)
 			goto cleanup;
 
