@@ -453,6 +453,16 @@ int main(int argc, char **argv)
 			log_debug("\n");
 
 #if 0
+			size_t frameSize = (frameBitStreams[i].NumBits / 8) - sizeof(AvLBsh);
+			char frameFilename[1024];
+			SDL_snprintf(frameFilename, sizeof(frameFilename), "%s_frame%04d.bin", argv[arg], i);
+			void *frameData = SDL_malloc(frameSize);
+			SDL_ReadIO(inputIo, frameData, frameSize);
+			SDL_SaveFile(frameFilename, frameData, frameSize);
+			SDL_free(frameData);
+#endif
+
+#if 0
 			char frameFilename[1024];
 			SDL_snprintf(frameFilename, sizeof(frameFilename), "%s_%d.png", argv[arg], i);
 			void *framePixels = yuv9_to_rgb24(frameBitStreams[i].XSize, frameBitStreams[i].YSize, inputIo, true);
