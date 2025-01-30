@@ -383,12 +383,13 @@ int main(int argc, char **argv)
 			SDL_SeekIO(inputIo, stream.FirstHdrOffset, SDL_IO_SEEK_SET);
 			for (int j = 0; j < stream.HdrCnt; j++)
 			{
+				log_info("\tSubStream %d:", j);
+				log_info("\t\tSubType: %s", avl_subtype_names[stream.SubType]);
+
 				if (stream.Type == AVL_T_CIM)
 				{
 					AvLCim cim;
 					read_AvLCim(inputIo, &cim);
-					log_info("\tSubStream %d:", j);
-					log_info("\t\tSubType: %s", avl_subtype_names[stream.SubType]);
 					log_info("\t\tDeCodeAlg: %d", cim.DeCodeAlg);
 					log_info("\t\tXPos: %d", cim.XPos);
 					log_info("\t\tYPos: %d", cim.YPos);
