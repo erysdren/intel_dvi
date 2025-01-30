@@ -10,6 +10,7 @@ has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 - [US Patent 5,666,137 for YUV9 Pixel Data](./docs/US5666137.pdf)
 - [YVU9 Pixel Format](https://fourcc.org/pixel-format/yuv-yvu9/)
 - [YUV9 Pixel Format](https://fourcc.org/pixel-format/yuv-yuv9/)
+- [ITU-R BT.601 conversion](https://en.wikipedia.org/wiki/YCbCr#ITU-R_BT.601_conversion)
 
 ## Thirdparty Code
 
