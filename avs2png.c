@@ -340,6 +340,14 @@ static void read_AvLFrm(SDL_IOStream *io, AvLFrm *frm, int StrmCnt)
 	frm->StrmFrmSize = SDL_calloc(StrmCnt, sizeof(int32_t));
 	for (int i = 0; i < StrmCnt; i++)
 		SDL_ReadU32LE(io, &frm->StrmFrmSize[i]);
+
+	int32_t MyChkSum = AVL_FRM_ID;
+	MyChkSum ^= frm->FrmNum;
+	MyChkSum ^= frm->RevOffset;
+	for (int i = 0; i < StrmCnt; i++)
+		MyChkSum ^= frm->StrmFrmSize[i];
+
+	soft_assert(frm->ChkSum == MyChkSum);
 }
 
 static void read_AvLBsh(SDL_IOStream *io, AvLBsh *bsh)
