@@ -366,6 +366,8 @@ int main(int argc, char **argv)
 		read_StdFileHdr(inputIo, &hdr);
 		read_AvLFile(inputIo, &avl);
 
+		log_info("FrmsPerSec: %d", avl.FrmsPerSec);
+
 		/* read streams */
 		SDL_SeekIO(inputIo, avl.StrmOffset, SDL_IO_SEEK_SET);
 		for (int i = 0; i < avl.StrmCnt; i++)
@@ -395,6 +397,8 @@ int main(int argc, char **argv)
 					log_info("\t\tYPos: %d", cim.YPos);
 					log_info("\t\tXLen: %d", cim.XLen);
 					log_info("\t\tYLen: %d", cim.YLen);
+					log_info("\t\tXCrop: %d", cim.XCrop);
+					log_info("\t\tYCrop: %d", cim.YCrop);
 				}
 			}
 
