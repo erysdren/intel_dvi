@@ -14,6 +14,7 @@ has been derived from [APPENDF.TXT](./docs/APPENDF.TXT) courtesy of
 - [ActionMedia II Links](https://ardent-tool.com/video/ActionMedia.html)
 - [Intel DVI File Format Summary](https://www.fileformat.info/format/dvi/egff.htm)
 - [DVI Technology Publications](https://manifest-tech.com/dvi/dvi_pubs.htm)
+- [Digital Video Interactive](https://en.wikipedia.org/wiki/Digital_Video_Interactive)
 
 ## Thirdparty Code
 
