@@ -377,6 +377,12 @@ static void make_output_filename(const char *input, char *output, size_t output_
 
 int main(int argc, char **argv)
 {
+#ifdef DEBUG
+	SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
+#else
+	SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
+#endif
+
 	for (int arg = 1; arg < argc; arg++)
 	{
 		AvLFrmDir *frameDirectory = NULL;
