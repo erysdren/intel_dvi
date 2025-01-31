@@ -1,7 +1,7 @@
 
 RM?=rm -f
 PKGCONFIG?=pkg-config
-PKGS?=sdl3
+PKGS?=sdl3 libavcodec libavutil
 
 override CFLAGS+=$(shell $(PKGCONFIG) --cflags $(PKGS)) -std=c23
 override LDFLAGS+=$(shell $(PKGCONFIG) --libs $(PKGS))

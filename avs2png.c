@@ -1,5 +1,6 @@
 
 #include <SDL3/SDL.h>
+#include <libavcodec/avcodec.h>
 #include "utils.h"
 #include "stb_image_write.h"
 #include "yuv.h"
@@ -377,11 +378,28 @@ static void make_output_filename(const char *input, char *output, size_t output_
 
 int main(int argc, char **argv)
 {
+	int err = 0;
+
 #ifdef DEBUG
 	SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_DEBUG);
 #else
 	SDL_SetLogPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
 #endif
+
+	const AVCodec *codec = avcodec_find_decoder(AV_CODEC_ID_INDEO2);
+	if (!codec)
+		die("Failed to find INDEO2 codec");
+
+	AVCodecContext *codecContext = avcodec_alloc_context3(codec);
+	if (!codecContext)
+		die("Failed to allocate AVCodecContext for INDEO2 codec");
+
+	if ((err = avcodec_open2(codecContext, codec, NULL)) < 0)
+		die("avcodec_open2() failed: %s", av_err2str(err));
+
+	AVFrame *codecFrame = av_frame_alloc();
+	if (!codecFrame)
+		die("Failed to allocate AVFrame");
 
 	for (int arg = 1; arg < argc; arg++)
 	{
@@ -451,6 +469,29 @@ int main(int argc, char **argv)
 			log_debug("\tYSize: %d", frameBitStreams[i].YSize);
 			log_debug("\tXSize: %d", frameBitStreams[i].XSize);
 			log_debug("\n");
+
+			AVPacket *codecPacket = av_packet_alloc();
+			if (!codecPacket)
+				die("av_packet_alloc() failed");
+
+			size_t frameSize = (frameBitStreams[i].NumBits / 8) - sizeof(AvLBsh);
+
+			codecContext->width = frameBitStreams[i].XSize;
+			codecContext->height = frameBitStreams[i].YSize;
+			codecContext->framerate = av_make_q(avl.FrmsPerSec, 1);
+
+			if ((err = av_new_packet(codecPacket, frameSize)) < 0)
+				die("av_new_packet() failed: %s", av_err2str(err));
+
+			SDL_ReadIO(inputIo, codecPacket->data, frameSize);
+
+			if ((err = avcodec_send_packet(codecContext, codecPacket)) < 0)
+				die("avcodec_send_packet() failed: %s", av_err2str(err));
+
+			if ((err = avcodec_receive_frame(codecContext, codecFrame)) < 0)
+				die("avcodec_receive_frame() failed: %s", av_err2str(err));
+
+			av_packet_free(&codecPacket);
 
 #if 0
 			size_t frameSize = (frameBitStreams[i].NumBits / 8) - sizeof(AvLBsh);
@@ -538,6 +579,9 @@ cleanup:
 		if (inputIo) SDL_CloseIO(inputIo);
 		if (outputIo) SDL_CloseIO(outputIo);
 	}
+
+	avcodec_free_context(&codecContext);
+	av_frame_free(&codecFrame);
 
 	SDL_Quit();
 
